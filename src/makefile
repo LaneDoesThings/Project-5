@@ -1,6 +1,6 @@
 all: project.bin
 
-project.bin: Project5.o
+project.bin: project5.o
 
 %.o: %.cpp
 	g++ $< -o ../bin/project.bin -Wall -lGL -lGLU -lglut -lGLEW
