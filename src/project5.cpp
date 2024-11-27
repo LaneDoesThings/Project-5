@@ -19,21 +19,51 @@ struct vec3
   double z;
 };
 
+struct vec3 uPos = {.x = (-cubeSize * 6) - (cubeSize / 2), .y = groundPlane + (cubeSize * 2), .z = cubeStart};
+struct vec3 aPos = {.x = (-cubeSize) - (cubeSize / 2), .y = groundPlane, .z = cubeStart};
+struct vec3 hPos = {.x = (cubeSize * 4) - (cubeSize / 2), .y = groundPlane + (cubeSize * 2), .z = cubeStart};
+
+float lightpos[4] = {0.0, 0.0, 0.0, 1.0};
+float lightcolor[4] = {1.0, 1.0, 1.0, 1.0};
+
+float uahMaterial[4] = {0.0, 0.47, 0.78, 1.0};
+float silverMaterial[4] = {0.75, 0.75, 0.75 , 1.0};
+float candyAppleMaterial[4] = {1.0, 0.031, 0.0, 1.0};
+float grayMaterial[4] = {0.25, 0.25, 0.25, 1.0};
+float specular = 50.0;
+
+float angle = 0;
+
+
+
 void display_CB()
 {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable(GL_DEPTH_TEST);
 
+  glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
+  glLightfv(GL_LIGHT0, GL_AMBIENT, lightcolor);
+
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+
+  glPushMatrix();
+  glTranslatef((aPos.x + cubeSize) + (cubeSize / 2.0), 0.0, cubeStart);
+  glRotatef(angle, 0.0, 1.0, 0.0);
+  glTranslatef(-((aPos.x + cubeSize) + (cubeSize / 2.0)), 0.0, -cubeStart);
   glCallList(1);
   glCallList(2);
   glCallList(3);
-
-  glPushMatrix();
-  glBegin(GL_LINES);
-  glVertex3i(0.0, -300.0, cubeStart);
-  glVertex3i(0.0, 500.0, cubeStart);
-  glEnd();
   glPopMatrix();
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT, grayMaterial);
+  glDisable(GL_LIGHT0);
+  glBegin(GL_TRIANGLES);
+  glVertex3f(aPos.x + cubeSize, (aPos.y + cubeSize * 2 + (cubeSize / 2.0)) + 75.0, aPos.z);
+  glVertex3f(aPos.x + cubeSize * 2, (aPos.y + cubeSize * 2 + (cubeSize / 2.0)) + 75.0, aPos.z);
+  glVertex3f((aPos.x + cubeSize) + (cubeSize / 2.0), aPos.y + cubeSize * 2 + (cubeSize / 2.0), aPos.z);
+  glEnd();
 
   glutSwapBuffers();
 }
@@ -45,32 +75,26 @@ void timer_CB(int id)
     glutTimerFunc(1000 / framerate, timer_CB, 0);
     glutPostRedisplay();
   }
+  //Rotation
+  if(id == 1)
+  {
+    angle += 4 % 360;
+    glutTimerFunc(22.2, timer_CB, 1);
+  }
 }
 
 int main(int argc, char *argv[]) {
   char canvas_Name[] = "Project 5 - Lane Wright";
   glutInit(&argc, argv);
   my_setup(canvas_Width, canvas_Height, canvas_Name);
-  glGenLists(5);
-
-  // Lighting setup
-  float lightpos[3] = {0.0, 0.0, 0.0};
-  float lightcolor[4] = {1.0, 1.0, 1.0, 1.0};
-  glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
-  glLightfv(GL_LIGHT0, GL_AMBIENT, lightcolor);
-
-  float materialcolor[4] = {1.0, 1.0, 1.0, 1.0};
-  glMaterialfv(GL_FRONT, GL_AMBIENT, materialcolor);
-
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-
-  struct vec3 uPos = {.x = (-cubeSize * 6) - (cubeSize / 2), .y = groundPlane + (cubeSize * 2), .z = cubeStart};
-  struct vec3 aPos = {.x = (-cubeSize) - (cubeSize / 2), .y = groundPlane, .z = cubeStart};
-  struct vec3 hPos = {.x = (cubeSize * 4) - (cubeSize / 2), .y = groundPlane + (cubeSize * 2), .z = cubeStart};
+  glGenLists(3);
 
     //U
     glNewList(1, GL_COMPILE);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, uahMaterial);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, lightcolor);
+    glMaterialf(GL_FRONT, GL_SHININESS, specular);
+
     for(int i = 0; i < 4; i++)
     {
       glPushMatrix();
@@ -93,10 +117,12 @@ int main(int argc, char *argv[]) {
       glutSolidCube(cubeSize);
       glPopMatrix();
     }
+
     glEndList();
 
     //A
     glNewList(2, GL_COMPILE);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, silverMaterial);
 
     for(int i = 0; i < 4; i++)
     {
@@ -136,22 +162,21 @@ int main(int argc, char *argv[]) {
     glutWireCube(cubeSize);
     glPopMatrix();
 
+    glMaterialfv(GL_FRONT, GL_AMBIENT, candyAppleMaterial);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, lightcolor);
+    glMaterialf(GL_FRONT, GL_SHININESS, specular);
     glPushMatrix();
     glTranslatef(aPos.x + cubeSize + (cubeSize / 2.0), aPos.y + cubeSize, aPos.z);
     glutSolidSphere(cubeSize / 2.0, 25, 10);
     glPopMatrix();
 
-    glBegin(GL_TRIANGLES);
-    glVertex3f(aPos.x + cubeSize, aPos.y + cubeSize * 2 + (cubeSize / 2.0), aPos.z);
-    glVertex3f(aPos.x + cubeSize * 2, aPos.y + cubeSize * 2 + (cubeSize / 2.0), aPos.z);
-    glVertex3f((aPos.x + cubeSize) + (cubeSize / 2.0), (aPos.y + cubeSize * 2 + (cubeSize / 2.0)) + 75.0, aPos.z);
-    glEnd();
-
-
     glEndList();
 
     //H
     glNewList(3, GL_COMPILE);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, uahMaterial);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, lightcolor);
+    glMaterialf(GL_FRONT, GL_SHININESS, specular);
 
     for(int i = 0; i < 4; i++)
     {
@@ -183,8 +208,7 @@ int main(int argc, char *argv[]) {
   // Event setup
   glutDisplayFunc(display_CB);
   glutTimerFunc(1000 / framerate, timer_CB, 0);
-  glutTimerFunc(1000, timer_CB, 1);
-  glutTimerFunc(55, timer_CB, 2);
+  glutTimerFunc(22.2, timer_CB, 1);
 
   glutMainLoop();
   return 0;
